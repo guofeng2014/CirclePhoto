@@ -96,19 +96,19 @@ public class CropImageView extends ZoomImageView {
         if (drawable == null) return null;
         int w = drawable.getIntrinsicWidth();
         int h = drawable.getIntrinsicHeight();
-        float dx = getTranslateX() - (getMeasuredWidth() - w) / 2;
-        float dh = getTranslateY() - (getMeasuredHeight() - h) / 2;
+        float dx = getTranslateX() - ((getMeasuredWidth() - w) >> 1);
+        float dh = getTranslateY() - ((getMeasuredHeight() - h) >> 1);
 
         int bW = bitmap.getWidth();
         int bH = bitmap.getHeight();
         Matrix matrix = new Matrix();
         matrix.postScale(getScale(), getScale());
         Bitmap sourceBitmap = Bitmap.createBitmap(bitmap, 0, 0, bW, bH, matrix, true);
-        Bitmap targetBitmap = Bitmap.createBitmap((int) radius * 2, (int) radius * 2, Bitmap.Config.ARGB_8888);
+        Bitmap targetBitmap = Bitmap.createBitmap((int) radius << 1, (int) radius << 1, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(targetBitmap);
         canvas.drawCircle(radius, radius, radius, paint);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(sourceBitmap, -(w / 2 - radius) + dx, -(h / 2 - radius) + dh, paint);
+        canvas.drawBitmap(sourceBitmap, -((w >> 1) - radius) + dx, -((h >> 1) - radius) + dh, paint);
         return targetBitmap;
     }
 
