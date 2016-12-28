@@ -91,11 +91,14 @@ public class ZoomImageView extends ImageView implements ScaleGestureDetector.OnS
     private void initRectF() {
         float x = getTranslateX();
         float y = getTranslateY();
-        Drawable drawable = getDrawable();
-        if (drawable == null) return;
-        float width = drawable.getIntrinsicWidth() * getScale();
-        float height = drawable.getIntrinsicHeight() * getScale();
-        mScaleRect.set(x, y, width + x, height + y);
+        try {
+            Drawable drawable = getImageDrawable();
+            float width = drawable.getIntrinsicWidth() * getScale();
+            float height = drawable.getIntrinsicHeight() * getScale();
+            mScaleRect.set(x, y, width + x, height + y);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private float defaultScale;
@@ -105,27 +108,31 @@ public class ZoomImageView extends ImageView implements ScaleGestureDetector.OnS
      * translate imageView to the screen center
      */
     private void imageToCenter() {
-        Drawable drawable = getDrawable();
-        if (drawable == null) return;
-        // imageView container real size
-        int width = getMeasuredWidth();
-        int height = getMeasuredHeight();
-        // bitmap origin real size
-        int dw = drawable.getIntrinsicWidth();
-        int dh = drawable.getIntrinsicHeight();
-        //post bitmap to imageView center,
-        // default position is left|top
-        mScaleMatrix.postTranslate((width - dw) >> 1, (height - dh) >> 1);
-        // bitmap is smaller than imageView
-        if (width > dw || height > dh) {
-            defaultScale = Math.min(width / dw, height / dh);
-        } else {
-            defaultScale = Math.max(width / dw, height / dh);
+        Drawable drawable;
+        try {
+            drawable = getImageDrawable();
+            // imageView container real size
+            int width = getMeasuredWidth();
+            int height = getMeasuredHeight();
+            // bitmap origin real size
+            int dw = drawable.getIntrinsicWidth();
+            int dh = drawable.getIntrinsicHeight();
+            //post bitmap to imageView center,
+            // default position is left|top
+            mScaleMatrix.postTranslate((width - dw) >> 1, (height - dh) >> 1);
+            // bitmap is smaller than imageView
+            if (width > dw || height > dh) {
+                defaultScale = Math.min(width / dw, height / dh);
+            } else {
+                defaultScale = Math.max(width / dw, height / dh);
+            }
+            scaleMax = SCALE_DEFAULT * defaultScale;
+            //Scale bitmap size until bitmap max size equal imageView max size
+            mScaleMatrix.postScale(defaultScale, defaultScale, width >> 1, height >> 1);
+            setImageMatrix(mScaleMatrix);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        scaleMax = SCALE_DEFAULT * defaultScale;
-        //Scale bitmap size until bitmap max size equal imageView max size
-        mScaleMatrix.postScale(defaultScale, defaultScale, width >> 1, height >> 1);
-        setImageMatrix(mScaleMatrix);
     }
 
     /**
@@ -225,7 +232,6 @@ public class ZoomImageView extends ImageView implements ScaleGestureDetector.OnS
 
     @Override
     public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
-        if (getDrawable() == null) return true;
         float scale = getScale();
         float scaleFactor = scaleGestureDetector.getScaleFactor();
         // check whether the bitmap can perform scale event
@@ -253,9 +259,15 @@ public class ZoomImageView extends ImageView implements ScaleGestureDetector.OnS
         // need to  measure bitmap margin left,top,right,bottom
         float x = (int) getTranslateX();
         float y = (int) getTranslateY();
-        float width = getDrawable().getIntrinsicWidth() * getScale();
-        float height = getDrawable().getIntrinsicHeight() * getScale();
-        mScaleRect.set(x, y, width + x, height + y);
+        try {
+            Drawable drawable = getImageDrawable();
+            float width = drawable.getIntrinsicWidth() * getScale();
+            float height = drawable.getIntrinsicHeight() * getScale();
+            mScaleRect.set(x, y, width + x, height + y);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
 
@@ -310,8 +322,8 @@ public class ZoomImageView extends ImageView implements ScaleGestureDetector.OnS
 
     protected void scaleWhenCenter() {
         Matrix matrix = mScaleMatrix;
-        Drawable drawable = getDrawable();
-        if (drawable != null) {
+        try {
+            Drawable drawable = getImageDrawable();
             centerRect.set(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
             matrix.mapRect(centerRect);
 
@@ -348,9 +360,18 @@ public class ZoomImageView extends ImageView implements ScaleGestureDetector.OnS
                 dy = height * 0.5f - centerRect.bottom + 0.5f * centerRect.height();
             }
             mScaleMatrix.postTranslate(dx, dy);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
 
+    protected Drawable getImageDrawable() throws Exception {
+        Drawable drawable = getDrawable();
+        if (drawable == null) {
+            throw new NullPointerException("drawable can not be null");
+        }
+        return drawable;
+    }
 
 }

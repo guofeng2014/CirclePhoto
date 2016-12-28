@@ -92,23 +92,28 @@ public class CropImageView extends ZoomImageView {
     public Bitmap cropBitmap() {
         Paint paint = new Paint();
         paint.setAntiAlias(true);
-        Drawable drawable = getDrawable();
-        if (drawable == null) return null;
-        int w = drawable.getIntrinsicWidth();
-        int h = drawable.getIntrinsicHeight();
-        float dx = getTranslateX() - ((getMeasuredWidth() - w) >> 1);
-        float dh = getTranslateY() - ((getMeasuredHeight() - h) >> 1);
+        Bitmap targetBitmap = null;
+        try {
+            Drawable drawable = getImageDrawable();
+            int orgWidth = drawable.getIntrinsicWidth();
+            int orgHeight = drawable.getIntrinsicHeight();
+            float dx = getTranslateX() - ((getMeasuredWidth() - orgWidth) >> 1);
+            float dh = getTranslateY() - ((getMeasuredHeight() - orgHeight) >> 1);
 
-        int bW = bitmap.getWidth();
-        int bH = bitmap.getHeight();
-        Matrix matrix = new Matrix();
-        matrix.postScale(getScale(), getScale());
-        Bitmap sourceBitmap = Bitmap.createBitmap(bitmap, 0, 0, bW, bH, matrix, true);
-        Bitmap targetBitmap = Bitmap.createBitmap((int) radius << 1, (int) radius << 1, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(targetBitmap);
-        canvas.drawCircle(radius, radius, radius, paint);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(sourceBitmap, -((w >> 1) - radius) + dx, -((h >> 1) - radius) + dh, paint);
+            int bW = bitmap.getWidth();
+            int bH = bitmap.getHeight();
+            Matrix matrix = new Matrix();
+            matrix.postScale(getScale(), getScale());
+            Bitmap sourceBitmap = Bitmap.createBitmap(bitmap, 0, 0, bW, bH, matrix, true);
+            targetBitmap = Bitmap.createBitmap((int) radius << 1, (int) radius << 1, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(targetBitmap);
+            canvas.drawCircle(radius, radius, radius, paint);
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+            canvas.drawBitmap(sourceBitmap, -((orgWidth >> 1) - radius) + dx, -((orgHeight >> 1) - radius) + dh, paint);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return targetBitmap;
     }
 
